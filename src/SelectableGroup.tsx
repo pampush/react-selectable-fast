@@ -128,10 +128,17 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
   clickedItem?: TSelectableItem
 
+  lastClickedItem?: TSelectableItem
+
   mouseDownData: TMouseDownData = {
     selectboxY: 0,
     selectboxX: 0,
     target: null,
+  }
+
+  containerOffset = {
+    top: 0,
+    left: 0,
   }
 
   registry = new Set<TSelectableItem>()
@@ -176,6 +183,12 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     }
 
     this.scrollContainer!.addEventListener('scroll', this.saveContainerScroll)
+
+    this.containerOffset = {
+      top: window.pageYOffset + this.scrollContainer!.getBoundingClientRect().top,
+      left: window.pageXOffset + this.scrollContainer!.getBoundingClientRect().left,
+    }
+
     document.addEventListener('scroll', this.saveDocumentScroll)
 
     this.selectableGroup!.addEventListener('mousedown', this.mouseDown)
@@ -460,6 +473,9 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     this.setState({ selectionMode: false })
     this.props.onSelectionFinish!([...this.selectedItems])
     this.props.onSelectionClear!()
+
+    this.lastClickedItem = undefined
+    this.clickedItem = undefined
   }
 
   selectAll = () => {
@@ -503,7 +519,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     )
   }
 
-  mouseDown = (e: Event) => {
+  mouseDown = (e: globalThis.MouseEvent | TouchEvent) => {
     const isNotLeftButtonClick =
       !e.type.includes('touch') &&
       !detectMouseButton(e as any, 1, {
@@ -518,13 +534,13 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
     this.removeIgnoredItemsFromRegistry()
 
-    if (this.isInIgnoreList(e.target as HTMLElement)) {
+    if (!e.ctrlKey && !e.shiftKey && this.isInIgnoreList(e.target as HTMLElement)) {
       this.mouseDownStarted = false
 
       return
     }
 
-    if (this.props.resetOnStart) {
+    if (!e.ctrlKey && !e.shiftKey && this.props.resetOnStart) {
       this.clearSelection()
     }
     this.mouseDownStarted = true
@@ -597,10 +613,19 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     }
 
     const evt: any = castTouchToMouseEvent(event)
-    const { pageX, pageY } = evt
+    // const { pageX, pageY } = evt
 
-    if (!this.mouseMoved && isNodeInRoot(evt.target as HTMLElement, this.selectableGroup!)) {
-      this.handleClick(evt, pageY, pageX)
+    const { selectboxY, selectboxX } = this.mouseDownData
+    if (
+      (evt.ctrlKey || evt.shiftKey) &&
+      !this.mouseMoved &&
+      isNodeInRoot(evt.target, this.selectableGroup!)
+    ) {
+      this.handleClick(
+        evt,
+        selectboxY + this.containerOffset.top,
+        selectboxX + this.containerOffset.left
+      )
     } else {
       for (const item of this.selectingItems.values()) {
         item.setState({ isSelected: true, isSelecting: false })
@@ -664,6 +689,11 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       selectAll: this.selectAll,
       clearSelection: this.clearSelection,
       getScrolledContainer: () => this.scrollContainer,
+      selectItem: (bounds: TComputedBounds | null = null) => {
+        if (bounds) {
+          this.selectItems(bounds, { isFromClick: true })
+        }
+      },
     },
   }
 
@@ -693,6 +723,31 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
         },
         { isFromClick: true }
       )
+
+      if (evt.ctrlKey) {
+        this.lastClickedItem = this.clickedItem
+      }
+
+      if (evt.shiftKey && this.selectedItems.size >= 2) {
+        this.selectedItems.forEach(item => item.setState({ isSelected: false }))
+        this.selectedItems = new Set()
+        const last = [...this.registry].findIndex(reg => reg === this.lastClickedItem)
+        const current = [...this.registry].findIndex(reg => reg === this.clickedItem)
+        const [min, max] = last > current ? [current, last + 1] : [last, current + 1]
+        this.selectedItems = new Set([...this.registry].slice(min, max))
+        this.selectedItems.forEach(item => item.setState({ isSelected: true }))
+      }
+      if (
+        evt.shiftKey &&
+        this.clickedItem &&
+        (this.selectedItems.size === 1 || this.selectedItems.size === 0)
+      ) {
+        this.lastClickedItem = this.clickedItem
+        this.selectedItems.forEach(item => item.setState({ isSelected: false }))
+        this.selectedItems = new Set()
+        this.selectedItems = new Set([this.clickedItem])
+        this.selectedItems.forEach(item => item.setState({ isSelected: true }))
+      }
 
       onSelectionFinish!([...this.selectedItems], this.clickedItem)
 
