@@ -136,11 +136,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     target: null,
   }
 
-  containerOffset = {
-    top: 0,
-    left: 0,
-  }
-
   registry = new Set<TSelectableItem>()
 
   selectedItems = new Set<TSelectableItem>()
@@ -183,11 +178,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     }
 
     this.scrollContainer!.addEventListener('scroll', this.saveContainerScroll)
-
-    this.containerOffset = {
-      top: window.pageYOffset + this.scrollContainer!.getBoundingClientRect().top,
-      left: window.pageXOffset + this.scrollContainer!.getBoundingClientRect().left,
-    }
 
     document.addEventListener('scroll', this.saveDocumentScroll)
 
@@ -543,6 +533,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     if (!e.ctrlKey && !e.shiftKey && this.props.resetOnStart) {
       this.clearSelection()
     }
+
     this.mouseDownStarted = true
     this.mouseUpStarted = false
     const evt = castTouchToMouseEvent(e)
@@ -613,19 +604,10 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     }
 
     const evt: any = castTouchToMouseEvent(event)
-    // const { pageX, pageY } = evt
+    const { pageX, pageY } = evt
 
-    const { selectboxY, selectboxX } = this.mouseDownData
-    if (
-      (evt.ctrlKey || evt.shiftKey) &&
-      !this.mouseMoved &&
-      isNodeInRoot(evt.target, this.selectableGroup!)
-    ) {
-      this.handleClick(
-        evt,
-        selectboxY + this.containerOffset.top,
-        selectboxX + this.containerOffset.left
-      )
+    if (!this.mouseMoved && isNodeInRoot(evt.target, this.selectableGroup!)) {
+      this.handleClick(evt, pageY, pageX)
     } else {
       for (const item of this.selectingItems.values()) {
         item.setState({ isSelected: true, isSelecting: false })
@@ -689,11 +671,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       selectAll: this.selectAll,
       clearSelection: this.clearSelection,
       getScrolledContainer: () => this.scrollContainer,
-      selectItem: (bounds: TComputedBounds | null = null) => {
-        if (bounds) {
-          this.selectItems(bounds, { isFromClick: true })
-        }
-      },
     },
   }
 
@@ -724,9 +701,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
         { isFromClick: true }
       )
 
-      if (evt.ctrlKey) {
-        this.lastClickedItem = this.clickedItem
-      }
+      if (!evt.shiftKey) this.lastClickedItem = this.clickedItem
 
       if (evt.shiftKey && this.selectedItems.size >= 2) {
         this.selectedItems.forEach(item => item.setState({ isSelected: false }))
@@ -737,6 +712,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
         this.selectedItems = new Set([...this.registry].slice(min, max))
         this.selectedItems.forEach(item => item.setState({ isSelected: true }))
       }
+
       if (
         evt.shiftKey &&
         this.clickedItem &&
@@ -751,10 +727,10 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
       onSelectionFinish!([...this.selectedItems], this.clickedItem)
 
-      if (evt.which === 1) {
+      if (evt.which === 1 && (evt.ctrlKey || evt.shiftKey)) {
         this.preventEvent(evt.target, 'click')
       }
-      if (evt.which === 2 || evt.which === 3) {
+      if ((evt.which === 2 || evt.which === 3) && (evt.ctrlKey || evt.shiftKey)) {
         this.preventEvent(evt.target, 'contextmenu')
       }
     }

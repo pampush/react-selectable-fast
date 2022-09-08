@@ -1,7 +1,7 @@
 import React, { createRef, Component } from 'react'
 
 import { TAlbumItem } from './sample-data'
-import { SelectableGroup } from '../../src'
+import { SelectableGroup, SelectAll, DeselectAll } from '../../src'
 import { Counters } from './Counters'
 import { List } from './List'
 
@@ -43,17 +43,17 @@ class App extends Component<TAppProps, TAppState> {
   }
 
   handleSelecting = (selectingItems: TAlbumItem) => {
-    this.countersRef.current.handleSelecting(selectingItems)
+    this.countersRef.current!.handleSelecting(selectingItems)
   }
 
   handleSelectionFinish = selectedItems => {
     console.log('Handle selection finish', selectedItems.length)
-    this.countersRef.current.handleSelectionFinish(selectedItems)
+    this.countersRef.current!.handleSelectionFinish(selectedItems)
   }
 
   handleSelectedItemUnmount = (_unmountedItem, selectedItems) => {
     console.log('hadneleSelectedItemUnmount')
-    this.countersRef.current.handleSelectionFinish(selectedItems)
+    this.countersRef.current!.handleSelectionFinish(selectedItems)
   }
 
   handleSelectionClear() {
@@ -79,24 +79,34 @@ class App extends Component<TAppProps, TAppState> {
         <button className="btn" type="button" onClick={this.toggleSelectableGroup}>
           Toggle group
         </button>
-        {showSelectableGroup && (
-          <SelectableGroup
-            ref={this.getSelectableGroupRef}
-            className="main"
-            clickClassName="tick"
-            enableDeselect={true}
-            tolerance={0}
-            deselectOnEsc={true}
-            allowClickWithoutSelected={false}
-            duringSelection={this.handleSelecting}
-            onSelectionClear={this.handleSelectionClear}
-            onSelectionFinish={this.handleSelectionFinish}
-            onSelectedItemUnmount={this.handleSelectedItemUnmount}
-            ignoreList={['.not-selectable']}
-          >
-            <List items={orderedItems} />
-          </SelectableGroup>
-        )}
+        <div className="button-container">
+          <SelectAll component="button" type="button" className="btn">
+            Select all
+          </SelectAll>
+          <DeselectAll component="button" type="button" className="btn">
+            Clear selection
+          </DeselectAll>
+        </div>
+        <div className="scroll" style={{ height: '600px', overflow: 'scroll' }}>
+          {showSelectableGroup && (
+            <SelectableGroup
+              ref={this.getSelectableGroupRef}
+              className="main"
+              selectOnClick={true}
+              allowCtrlClick={true}
+              allowShiftClick={true}
+              resetOnStart={true}
+              deselectOnEsc={true}
+              scrollContainer=".scroll"
+              onSelectionClear={this.handleSelectionClear}
+              onSelectionFinish={this.handleSelectionFinish}
+              onSelectedItemUnmount={this.handleSelectedItemUnmount}
+              ignoreList={['.not-selectable']}
+            >
+              <List items={orderedItems} />
+            </SelectableGroup>
+          )}
+        </div>
       </div>
     )
   }
