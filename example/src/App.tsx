@@ -98,6 +98,7 @@ class App extends Component<TAppProps, TAppState> {
               resetOnStart={true}
               deselectOnEsc={true}
               scrollContainer=".scroll"
+              ignoreOnDrag=".item"
               onSelectionClear={this.handleSelectionClear}
               onSelectionFinish={this.handleSelectionFinish}
               onSelectedItemUnmount={this.handleSelectedItemUnmount}

@@ -42,9 +42,16 @@ export const createSelectable = <T extends any>(
       this.node = ref
     }
 
+    selectItem = (e: any) => this.context.selectable.selectItem(e, this.bounds)
+
     render() {
       return (
-        <WrappedComponent {...this.props} {...this.state} selectableRef={this.getSelectableRef} />
+        <WrappedComponent
+          {...this.props}
+          {...this.state}
+          selectableRef={this.getSelectableRef}
+          selectItem={this.selectItem}
+        />
       )
     }
   }

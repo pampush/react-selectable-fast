@@ -11,10 +11,10 @@ export const List = memo((props: TListProps) => {
   const { items } = props
 
   return (
-    <div className="albums">
+    <>
       {items.map(item => (
         <Card key={item.year} player={item.player} year={item.year} />
       ))}
-    </div>
+    </>
   )
 })
