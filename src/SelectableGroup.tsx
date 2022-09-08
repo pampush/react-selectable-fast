@@ -594,7 +594,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       selectboxX: evt.clientX - this.scrollBounds!.left + this.containerScroll.scrollLeft,
     }
 
-    evt.preventDefault()
     document.addEventListener('mouseup', this.mouseUp)
     document.addEventListener('touchend', this.mouseUp)
 
@@ -603,6 +602,8 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
       return
     }
+
+    evt.preventDefault()
 
     document.addEventListener('mousemove', this.updateSelectBox)
     document.addEventListener('touchmove', this.updateSelectBox)

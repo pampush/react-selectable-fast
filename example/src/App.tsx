@@ -1,5 +1,8 @@
 import React, { createRef, Component } from 'react'
 
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+
 import { TAlbumItem } from './sample-data'
 import { SelectableGroup, SelectAll, DeselectAll } from '../../src'
 import { Counters } from './Counters'
@@ -68,47 +71,49 @@ class App extends Component<TAppProps, TAppState> {
     const orderedItems = reversed ? itemsToRender.slice().reverse() : itemsToRender
 
     return (
-      <div>
-        <Counters ref={this.countersRef} />
-        <button className="btn" type="button" onClick={this.toggleFirstRow}>
-          Toggle first row
-        </button>
-        <button className="btn" type="button" onClick={this.toggleOrder}>
-          Toggle order
-        </button>
-        <button className="btn" type="button" onClick={this.toggleSelectableGroup}>
-          Toggle group
-        </button>
-        <div className="button-container">
-          <SelectAll component="button" type="button" className="btn">
-            Select all
-          </SelectAll>
-          <DeselectAll component="button" type="button" className="btn">
-            Clear selection
-          </DeselectAll>
+      <DndProvider backend={HTML5Backend}>
+        <div>
+          <Counters ref={this.countersRef} />
+          <button className="btn" type="button" onClick={this.toggleFirstRow}>
+            Toggle first row
+          </button>
+          <button className="btn" type="button" onClick={this.toggleOrder}>
+            Toggle order
+          </button>
+          <button className="btn" type="button" onClick={this.toggleSelectableGroup}>
+            Toggle group
+          </button>
+          <div className="button-container">
+            <SelectAll component="button" type="button" className="btn">
+              Select all
+            </SelectAll>
+            <DeselectAll component="button" type="button" className="btn">
+              Clear selection
+            </DeselectAll>
+          </div>
+          <div className="scroll" style={{ height: '600px', overflow: 'scroll' }}>
+            {showSelectableGroup && (
+              <SelectableGroup
+                ref={this.getSelectableGroupRef}
+                className="main"
+                selectOnClick={true}
+                allowCtrlClick={true}
+                allowShiftClick={true}
+                resetOnStart={true}
+                deselectOnEsc={true}
+                scrollContainer=".scroll"
+                ignoreOnDrag=".item"
+                onSelectionClear={this.handleSelectionClear}
+                onSelectionFinish={this.handleSelectionFinish}
+                onSelectedItemUnmount={this.handleSelectedItemUnmount}
+                ignoreList={['.not-selectable']}
+              >
+                <List items={orderedItems} />
+              </SelectableGroup>
+            )}
+          </div>
         </div>
-        <div className="scroll" style={{ height: '600px', overflow: 'scroll' }}>
-          {showSelectableGroup && (
-            <SelectableGroup
-              ref={this.getSelectableGroupRef}
-              className="main"
-              selectOnClick={true}
-              allowCtrlClick={true}
-              allowShiftClick={true}
-              resetOnStart={true}
-              deselectOnEsc={true}
-              scrollContainer=".scroll"
-              ignoreOnDrag=".item"
-              onSelectionClear={this.handleSelectionClear}
-              onSelectionFinish={this.handleSelectionFinish}
-              onSelectedItemUnmount={this.handleSelectedItemUnmount}
-              ignoreList={['.not-selectable']}
-            >
-              <List items={orderedItems} />
-            </SelectableGroup>
-          )}
-        </div>
-      </div>
+      </DndProvider>
     )
   }
 }
