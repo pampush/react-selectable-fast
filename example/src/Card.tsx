@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react'
 
 import { useDrag } from 'react-dnd'
@@ -12,7 +14,7 @@ type TAlbumProps = {
 // const DISABLED_CARD_YEARS = [10, 22, 27, 54, 82, 105, 150]
 
 export const Card = createSelectable<TAlbumProps>((props: TSelectableItemProps & TAlbumProps) => {
-  const { selectableRef, isSelected, isSelecting, player, year } = props
+  const { selectableRef, isSelected, isSelecting, player, year, selectItem } = props
 
   const [, drag] = useDrag({
     type: 'item',
@@ -25,6 +27,10 @@ export const Card = createSelectable<TAlbumProps>((props: TSelectableItemProps &
     .filter(Boolean)
     .join(' ')
 
+  function onClick(e: any) {
+    selectItem(e)
+  }
+
   return (
     <div
       ref={node => {
@@ -32,10 +38,13 @@ export const Card = createSelectable<TAlbumProps>((props: TSelectableItemProps &
         drag(node)
       }}
       className={classNames}
+      onClick={onClick}
     >
-      <h2>{player}</h2>
-      <small>{year}</small>
-      <Label isSelected={isSelected} isSelecting={isSelecting} />
+      <div className="not-selectable" style={{ height: '100%', width: '100%' }}>
+        <h2>{player}</h2>
+        <small>{year}</small>
+        <Label isSelected={isSelected} isSelecting={isSelecting} />
+      </div>
     </div>
   )
 })

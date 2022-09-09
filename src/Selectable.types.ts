@@ -6,6 +6,7 @@ type TSelectableContext = {
   selectAll(): void
   clearSelection(): void
   getScrolledContainer(): Maybe<HTMLElement>
+  selectItem(e: any): void
 }
 
 export type TSelectableGroupContext = {
@@ -29,4 +30,5 @@ export type TSelectableItem = {
 
 export type TSelectableItemProps = TSelectableItemState & {
   selectableRef(node: HTMLElement | null): void
+  selectItem(e: any): void
 }

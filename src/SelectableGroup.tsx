@@ -84,7 +84,6 @@ export type TSelectableGroupProps = {
    * @type boolean
    */
   fixedPosition?: boolean
-  ignoreOnDrag: string
 }
 
 export class SelectableGroup extends Component<TSelectableGroupProps> {
@@ -111,7 +110,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     allowMetaClick: false,
     allowShiftClick: false,
     selectOnClick: true,
-    ignoreOnDrag: '',
   }
 
   state = { selectionMode: false }
@@ -215,7 +213,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
   saveContainerScroll = () => {
     const { scrollTop, scrollLeft } = this.scrollContainer!
-    console.log('scroll')
 
     this.containerScroll = {
       scrollTop,
@@ -244,7 +241,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     document.removeEventListener('touchmove', this.updateSelectBox)
     document.removeEventListener('mouseup', this.mouseUp)
     document.removeEventListener('touchend', this.mouseUp)
-    document.removeEventListener('mousemove', this.mouseMovedToggler)
+    // document.removeEventListener('mousemove', this.mouseMovedToggler)
   }
 
   updateRootBounds() {
@@ -415,7 +412,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     const { isSelecting, isSelected } = item.state
 
     if (isFromClick && isCollided) {
-      console.log(selectboxBounds, item.bounds!)
       if (isSelected) {
         this.selectedItems.delete(item)
       } else {
@@ -423,6 +419,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       }
 
       item.setState({ isSelected: !isSelected })
+
       this.clickedItem = item
 
       return item
@@ -509,18 +506,6 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
     return shouldBeIgnored
   }
 
-  isInIgnoreDrag(target: HTMLElement | null) {
-    const ignoreNodeList = document.querySelectorAll(this.props.ignoreOnDrag)
-    let shouldBeIgnored = false
-    ignoreNodeList.forEach(ignoredNode => {
-      if (ignoredNode.contains(target)) {
-        shouldBeIgnored = true
-      }
-    })
-
-    return shouldBeIgnored
-  }
-
   removeIgnoredItemsFromRegistry() {
     this.ignoreListNodes = Array.from(document.querySelectorAll(this.ignoreList.join(', ')))
 
@@ -594,17 +579,9 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       selectboxX: evt.clientX - this.scrollBounds!.left + this.containerScroll.scrollLeft,
     }
 
+    evt.preventDefault()
     document.addEventListener('mouseup', this.mouseUp)
     document.addEventListener('touchend', this.mouseUp)
-
-    if (this.isInIgnoreDrag(evt.target as HTMLElement)) {
-      document.addEventListener('mousemove', this.mouseMovedToggler)
-
-      return
-    }
-
-    evt.preventDefault()
-
     document.addEventListener('mousemove', this.updateSelectBox)
     document.addEventListener('touchmove', this.updateSelectBox)
   }
@@ -660,6 +637,7 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
 
     this.toggleSelectionMode()
     this.cleanUp()
+
     this.mouseMoved = false
   }
 
@@ -702,8 +680,18 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
       clearSelection: this.clearSelection,
       getScrolledContainer: () => this.scrollContainer,
       selectItem: (e: any) => {
-        this.mouseDown(e)
-        this.mouseUp(e)
+        const { pageX, pageY } = e
+        const { scrollTop, scrollLeft } = this.containerScroll
+
+        this.updateRootBounds()
+        this.updateRegistry()
+
+        this.mouseDownData = {
+          target: e.target as HTMLElement,
+          selectboxY: e.clientY - this.scrollBounds!.top + this.containerScroll.scrollTop,
+          selectboxX: e.clientX - this.scrollBounds!.left + this.containerScroll.scrollLeft,
+        }
+        this.handleClick(e, pageY + scrollTop, pageX + scrollLeft)
       },
     },
   }
@@ -734,6 +722,15 @@ export class SelectableGroup extends Component<TSelectableGroupProps> {
         },
         { isFromClick: true }
       )
+
+      if (!evt.ctrlKey && !evt.shiftKey) {
+        this.selectedItems.forEach(item => item.setState({ isSelected: false }))
+        this.selectedItems = new Set()
+        if (this.clickedItem) {
+          this.selectedItems.add(this.clickedItem)
+        }
+        this.selectedItems.forEach(item => item.setState({ isSelected: true }))
+      }
 
       if (!evt.shiftKey) this.lastClickedItem = this.clickedItem
 

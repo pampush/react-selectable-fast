@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { createRef, Component } from 'react'
 
 import { DndProvider } from 'react-dnd'
@@ -27,8 +29,11 @@ class App extends Component<TAppProps, TAppState> {
 
   countersRef = createRef<Counters>()
 
+  selectableGroupRef: SelectableGroup | null = null
+
   getSelectableGroupRef = (ref: SelectableGroup | null) => {
     ;(window as any).selectableGroup = ref
+    this.selectableGroupRef = ref
   }
 
   toggleFirstRow = () => {
@@ -99,10 +104,9 @@ class App extends Component<TAppProps, TAppState> {
                 selectOnClick={true}
                 allowCtrlClick={true}
                 allowShiftClick={true}
-                resetOnStart={true}
                 deselectOnEsc={true}
                 scrollContainer=".scroll"
-                ignoreOnDrag=".item"
+                resetOnStart={true}
                 onSelectionClear={this.handleSelectionClear}
                 onSelectionFinish={this.handleSelectionFinish}
                 onSelectedItemUnmount={this.handleSelectedItemUnmount}
