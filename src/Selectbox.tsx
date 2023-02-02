@@ -42,7 +42,9 @@ export function Selectbox(props: TSelectboxProps) {
     transform: 'translateZ(0)',
   }
 
-  return <div className={className} style={boxStyle} />
+  const applyClassName = state.x !== 0 || state.y !== 0
+
+  return <div className={applyClassName ? className : ''} style={boxStyle} />
 }
 
 Selectbox.defaultProps = {

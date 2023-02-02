@@ -1,6 +1,6 @@
 {
-  "name": "react-selectable-fast",
-  "version": "3.4.0",
+  "name": "react-selectable-fast-control",
+  "version": "3.4.5",
   "description": "Enable other React components to be selectable by drawing a box with your mouse/touch",
   "repository": {
     "type": "git",
@@ -101,5 +101,9 @@
     "webpack-bundle-analyzer": "^3.6.1",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
+  },
+  "dependencies": {
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1"
   }
 }
